@@ -4,7 +4,9 @@
 import os
 
 folder = r'E:\demos\files\reports\\'
-count = 1
+Num_code = HBA.2.9_1   #efter hvad vi aftalte
+
+#count = 1
 # count increase by 1 in each iteration
 # iterate all files from a directory
 for file_name in os.listdir(folder):
@@ -12,14 +14,13 @@ for file_name in os.listdir(folder):
     source = folder + file_name
 
     # Adding the count to the new file name and extension
-    destination = folder + "sales_" + str(count) + ".txt"
+    destination = folder + str(num_code) + file_name + ".txt"
 
     # Renaming the file
     os.rename(source, destination)
-    count += 1
-print('All Files Renamed')
+    #count += 1
 
-print('New Names are')
 # verify the result
 res = os.listdir(folder)
 print(res)
+
