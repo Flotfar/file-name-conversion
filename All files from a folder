@@ -2,25 +2,44 @@
 # part of the standard library, or stdlib, within Python 3.
 
 import os
+import xlsxwriter
 
-folder = r'E:\demos\files\reports\\'
-Num_code = HBA.2.9_1   #efter hvad vi aftalte
+folder = r'/Users/joakimbonde/Desktop/File_test/'   # file path, rapped with 'r'
+file_num = "HBA.2.9_1_"                 # file initial numbering
+
+old_name = []
 
 #count = 1
 # count increase by 1 in each iteration
 # iterate all files from a directory
+
 for file_name in os.listdir(folder):
-    # Construct old file name
+    # Constructing old file name and saving it to array:
     source = folder + file_name
+    old_name.append(file_name)
 
     # Adding the count to the new file name and extension
-    destination = folder + str(num_code) + file_name + ".txt"
+    destination = folder + file_num + file_name
 
     # Renaming the file
     os.rename(source, destination)
     #count += 1
 
-# verify the result
-res = os.listdir(folder)
-print(res)
+# Creating result array:
+new_name = os.listdir(folder)
+
+# print("The new names:")
+# print(new_name)
+# print("The old names:")
+# print(old_name)
+
+# Creating Excel file for exportation of results:
+workbook = xlsxwriter.Workbook('File_info.xlsx')
+worksheet = workbook.add_worksheet('Names')
+
+# worksheet.write(0, 0, "Old names:")
+# worksheet.write(0, 1, "New names:")
+# worksheet.write(1, 0, old_name)
+# worksheet.write(1, 1, new_name)
+
 
