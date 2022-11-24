@@ -1,3 +1,6 @@
+# this code is running the os-module which is a 
+# part of the standard library, or stdlib, within Python 3.
+
 import os
 
 folder = r'E:\demos\files\reports\\'
