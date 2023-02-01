@@ -1,20 +1,43 @@
 # this code is running the os-module which is a 
 # part of the standard library, or stdlib, within Python 3.
 
+
+#########################################################
+#### Rules of the script:                            ####
+#########################################################
+
+# All files belonging to vedligehold should be placed within that folder in input
+# All files belonging to 
+# All lose files should be placed in the open invironment of the input folder
+
+#########################################################
+
 import os
 import shutil    
 import xlsxwriter
+import numpy as np
+import pandas as pd
 
-folder = r'C:\Users\jbmk\OneDrive - Ramboll\Desktop\File Renaming PY\Data_input'   # file path, rapped with 'r'
-dest_folder = r'C:\Users\jbmk\OneDrive - Ramboll\Desktop\File Renaming PY\Data_output'  # destination folder
+folder = r'C:\Users\jbmk\OneDrive - Ramboll\Desktop\SoB - Doc\File Renaming PY\Data_input'   # file path, rapped with 'r'
+dest_folder = r'C:\Users\jbmk\OneDrive - Ramboll\Desktop\SoB - Doc\File Renaming PY\Data_output'  # destination folder
 
 
-#########################################################
-#### Hoved-Navngivning af filerne:                   ####
-#########################################################
-
-panel_num = "HPA.2.9"                           # file initial numbering
+panel_num = "HPA1.7"       # file initial numbering
 main_folder = ["Vedligeh" , "Indstl.Opstil"]    #Main folder naming
+
+
+###############################################################################
+#### Extracting general File information from Collective.xlsx (File_load): ####
+###############################################################################
+
+# Importing the excel file, sheet.no 5 "File_load"
+df = pd.read_excel(r'C:\Users\jbmk\OneDrive - Ramboll\Desktop\SoB - Doc\File Renaming PY\File_collective.xlsx', sheet_name='File_load')
+
+# Refferencing columns to variables:
+df_ofname = df['Gammelt Filnavn']
+df_rev = df['Revision']
+df_date = df['Udgavedato'].apply(lambda x: x.strftime('%d-%m-%Y'))   #Clearing out timestamps from the Date
+df_dname = df['Tegningsnavn']
 
 
 #########################################################
@@ -25,13 +48,17 @@ workbook = xlsxwriter.Workbook('File_info.xlsx')
 worksheet = workbook.add_worksheet('Names')
 
 #formats
-title_format = workbook.add_format({'bold': True, 'font_size': '14', 'border': True})
-name_format = workbook.add_format({'font_size': '11', 'border': True})
+title_format = workbook.add_format({'bold': True, 'font_size': '14', 'border': False})
+name_format = workbook.add_format({'font_size': '11', 'border': False})
 
 worksheet.write(0, 0, "Gammelt filnavn:" , title_format)
-worksheet.write(0, 1, "Filnavn:" , title_format)
-worksheet.write(0, 2, "Tegningsnummer:" , title_format)
-worksheet.write(0, 3, "Tegningsnavn:" , title_format)
+worksheet.write(0, 1, "Tegningsnummer:" , title_format)
+worksheet.write(0, 2, "Revision:" , title_format)
+worksheet.write(0, 3, "Udgavedato:" , title_format)
+worksheet.write(0, 4, "Tegningsnavn:" , title_format)
+worksheet.write(0, 5, "Filnavn:" , title_format)
+
+
 
 
 ############################################################
@@ -75,12 +102,33 @@ for fname_A in os.listdir(folder):
         # Renaming the file
         os.rename(dest_A, destination)
 
-        # Adding information to Excel:
-        worksheet.write(row, 0, str(fname_A), name_format)          # Old Name
-        worksheet.write(row, 1, str(new_name), name_format)         # New Name
-        worksheet.write(row, 2, str(panel_num), name_format)        # Drawing number
-        worksheet.write(row, 3, str(panel_num + '. '), name_format)  # Drawing name
+        # Extracting rev, date, drawing.no from File_collective.xlsx
+        # ofname = Old File name,  rev = revision,  dname = Drawing name,  date = Issue date
+        for index in range(len(df)):
+            if df_ofname[index] == fname_A:
+                dname = df_dname[index]
+                rev = str(df_rev[index])
+                date = str(df_date[index])
+                break
+            elif df_ofname[index].startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
+                dname = "Løgstrup. B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse"
+                rev = "2"
+                date = "28-06-2017"
+                break
+            else:
+                dname = ""
+                rev = ""
+                date = ""
 
+        # Adding information to Excel:
+        worksheet.write(row, 0, str(fname_A), name_format)    # Old File Name
+        worksheet.write(row, 1, str(panel_num), name_format)  # Panel number
+        worksheet.write(row, 2, str(rev), name_format)        # Revision
+        worksheet.write(row, 3, str(date), name_format)       # Issue date
+        worksheet.write(row, 4, str(panel_num + '. ' + dname), name_format)  # Drawing name
+        worksheet.write(row, 5, str(new_name), name_format)   # New File Name
+        
+        
         row += 1
 
 ####### If folder B #######
@@ -105,11 +153,31 @@ for fname_A in os.listdir(folder):
                 # Renaming the file
                 os.rename(dest_B, destination)
 
+                # Extracting rev, date, drawing.no from File_collective.xlsx
+                # ofname = Old File name,  rev = revision,  dname = Drawing name,  date = Issue date
+                for index in range(len(df)):
+                    if df_ofname[index] == fname_B:
+                        dname = df_dname[index]
+                        rev = str(df_rev[index])
+                        date = str(df_date[index])
+                        break
+                    elif df_ofname[index].startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
+                        dname = "Løgstrup. B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse"
+                        rev = "2"
+                        date = "28-06-2017"
+                        break
+                    else:
+                        dname = ""
+                        rev = ""
+                        date = ""
+
                 # Adding information to Excel:
-                worksheet.write(row, 0, str(fname_B), name_format)            # Old Name
-                worksheet.write(row, 1, str(new_name), name_format)           # New Name
-                worksheet.write(row, 2, str(panel_num_B), name_format)        # Drawing number
-                worksheet.write(row, 3, str(panel_num + '. ' + main_folder[count] + '. '), name_format)  # Drawing name
+                worksheet.write(row, 0, str(fname_B), name_format)    # Old File Name
+                worksheet.write(row, 1, str(panel_num), name_format)  # Panel number
+                worksheet.write(row, 2, str(rev), name_format)        # Revision
+                worksheet.write(row, 3, str(date), name_format)       # Issue date
+                worksheet.write(row, 4, str(panel_num + '. ' + main_folder[count] + '. ' + dname), name_format)  # Drawing name
+                worksheet.write(row, 5, str(new_name), name_format)   # New File Name
 
                 row += 1
 
@@ -140,11 +208,31 @@ for fname_A in os.listdir(folder):
                         # Renaming the file
                         os.rename(dest_C, destination)
 
+                        # Extracting rev, date, drawing.no from File_collective.xlsx
+                        # ofname = Old File name,  rev = revision,  dname = Drawing name,  date = Issue date
+                        for index in range(len(df)):
+                            if df_ofname[index] == fname_C:
+                                dname = df_dname[index]
+                                rev = str(df_rev[index])
+                                date = str(df_date[index])
+                                break
+                            elif df_ofname[index].startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
+                                dname = "Løgstrup. B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse"
+                                rev = "2"
+                                date = "28-06-2017"
+                                break
+                            else:
+                                dname = ""
+                                rev = ""
+                                date = ""
+
                         # Adding information to Excel:
-                        worksheet.write(row, 0, str(fname_C), name_format)            # Old Name
-                        worksheet.write(row, 1, str(new_name), name_format)           # New Name
-                        worksheet.write(row, 2, str(panel_num_C), name_format)        # Drawing number
-                        worksheet.write(row, 3, str(panel_num + '. ' + main_folder[count] + '. ' + fname_B + '. '), name_format)  # Drawing name
+                        worksheet.write(row, 0, str(fname_C), name_format)    # Old File Name
+                        worksheet.write(row, 1, str(panel_num), name_format)  # Panel number
+                        worksheet.write(row, 2, str(rev), name_format)        # Revision
+                        worksheet.write(row, 3, str(date), name_format)       # Issue date
+                        worksheet.write(row, 4, str(panel_num + '. ' + main_folder[count] + '. ' + fname_B + '. ' + dname), name_format)  # Drawing name
+                        worksheet.write(row, 5, str(new_name), name_format)   # New File Name
 
                         row += 1
 
@@ -168,11 +256,25 @@ for fname_A in os.listdir(folder):
                                 # Renaming the file
                                 os.rename(dest_D, destination)
 
+                                # Extracting rev, date, drawing.no from File_collective.xlsx
+                                for index in range(len(df)):
+                                    if df_ofname[index] == fname_D:
+                                        dname = df_dname[index]
+                                        rev = str(df_rev[index])
+                                        date = str(df_date[index])
+                                        break
+                                    else:
+                                        dname = ""
+                                        rev = ""
+                                        date = ""
+
                                 # Adding information to Excel:
-                                worksheet.write(row, 0, str(fname_D), name_format)            # Old Name
-                                worksheet.write(row, 1, str(new_name), name_format)           # New Name
-                                worksheet.write(row, 2, str(panel_num_D), name_format)        # Drawing number
-                                worksheet.write(row, 3, str(panel_num + '. ' + main_folder[count] + '. ' + fname_B + '. ' + fname_C + '. '), name_format)  # Drawing name
+                                worksheet.write(row, 0, str(fname_D), name_format)    # Old File Name
+                                worksheet.write(row, 1, str(panel_num), name_format)  # Panel number
+                                worksheet.write(row, 2, str(rev), name_format)        # Revision
+                                worksheet.write(row, 3, str(date), name_format)       # Issue date
+                                worksheet.write(row, 4, str(panel_num + '. ' + main_folder[count] + '. ' + fname_B + '. ' + fname_C + '. ' + dname), name_format)  # Drawing name
+                                worksheet.write(row, 5, str(new_name), name_format)   # New File Name
 
                                 row += 1
 
@@ -187,6 +289,5 @@ for fname_A in os.listdir(folder):
         count += 1
 
 
-# D niveau fungerer ikke optimalt enndu
 
 workbook.close()
