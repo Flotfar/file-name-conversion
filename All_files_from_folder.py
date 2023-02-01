@@ -15,7 +15,6 @@
 import os
 import shutil    
 import xlsxwriter
-import numpy as np
 import pandas as pd
 
 folder = r'C:\Users\jbmk\OneDrive - Ramboll\Desktop\SoB - Doc\File Renaming PY\Data_input'   # file path, rapped with 'r'
