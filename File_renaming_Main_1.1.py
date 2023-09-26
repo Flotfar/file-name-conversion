@@ -27,6 +27,7 @@ import os
 import shutil    
 import xlsxwriter
 import pandas as pd
+import re
 
 
 folder = r'C:\Users\jbmk\OneDrive - Ramboll\Desktop\SoB - Doc\File Renaming PY\Data_input'   # file path, rapped with 'r'
@@ -90,6 +91,100 @@ count = 0
 count_C = 1
 
 
+
+#########################################################
+#### Dname, rev and date extraction function:        ####
+#########################################################
+
+def drawing_namer(fname):
+    for index in range(len(df)):
+            if df_ofname[index] == fname:
+                dname = df_dname[index]
+                rev = str(df_rev[index])
+                date = str(df_date[index])
+                break
+            #Driftsætning og vedligeholds doc:
+            elif fname.startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
+                dname = "Løgstrup. B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse"
+                rev = "2"
+                date = "28-06-2017"
+                break
+            #03-833xx filer:
+            elif "diagram" in fname.lower():
+                numbers = re.findall(r"\d{4}\b|\d{2}\b", fname)
+                dnum = ''.join(numbers)
+                dname = "Løgstrup. " + dnum + ". Electrical Diagram"
+                rev = "0"
+                date = ""
+                break
+            elif "layout" in fname.lower():
+                numbers = re.findall(r"\d{4}\b|\d{2}", fname)
+                dnum = ''.join(numbers[2:5])
+                dname = "Løgstrup. " + dnum + ". Layout"
+                rev = ""
+                date = ""
+                break
+            elif "test report" in fname.lower():
+                numbers = re.findall(r"\d{8}\b", fname)
+                dnum = ''.join(numbers)
+                dname = "Løgstrup. " + dnum + ". Test report"
+                rev = "0"
+                date = ""
+                break
+            elif "settingsreport" in fname.lower():
+                numbers = re.findall(r"\d{8}\b", fname)
+                dnum = ''.join(numbers)
+                dname = "ABB. " + "E-Hub 2.0. Settings Report. " + dnum
+                rev = "0"
+                date = "17-05-2022"
+                break
+            else:
+                dname = ""
+                rev = ""
+                date = ""
+    
+    return dname, rev, date
+    
+
+#########################################################
+#### short filename creation function:        ####
+#########################################################
+
+def file_namer(fname):
+    for index in range(len(df_2)):
+            if df_2_long_name[index] == fname:
+                new_name = panel_num + '_' + df_2_short_name[index]
+                break
+            #Driftsætning og vedligeholds doc:
+            elif fname.startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
+                new_name = panel_num + '_' + "B 4.13.2.2 Trans.Idrifts.Vedligeh_" + tiv + ".docx"
+                break
+            #03-833xx filer:
+            elif "diagram" in fname.lower():
+                numbers = re.findall(r"\d{4}\b|\d{2}\b", fname)
+                dnum = ''.join(numbers)
+                new_name = panel_num + '_' + tiv + '_' + "Diagram_" + '_' + dnum + ".pdf"
+                break
+            elif "layout" in fname.lower():
+                numbers = re.findall(r"\d{4}\b|\d{2}", fname)
+                dnum = ''.join(numbers[2:5])
+                new_name = panel_num + '_' + tiv + '_' + "Layout_" + dnum + ".pdf"
+                break
+            elif "test report" in fname.lower():
+                numbers = re.findall(r"\d{8}\b", fname)
+                dnum = ''.join(numbers)
+                new_name = panel_num + '_' + tiv + '_' + "Test report_" + dnum + ".pdf"
+                break
+            elif "settingsreport" in fname.lower():
+                numbers = re.findall(r"\d{8}\b", fname)
+                dnum = ''.join(numbers)
+                new_name = panel_num + '_' + "Settingsreport_" + tiv + '_' + "E-hub_" + dnum + ".pdf"
+                break
+            else:
+                new_name = panel_num + '_' + fname_A
+    
+    return new_name
+
 # count increase by 1 in each iteration
 # iterate all files from a directory
 
@@ -105,15 +200,7 @@ for fname_A in os.listdir(folder):
         shutil.copyfile(path_A, dest_A)
 
         # Constructing new file name with numbering + reference to standart file name list (df_2):
-        for index in range(len(df_2)):
-            if df_2_long_name[index] == fname_A:
-                new_name = panel_num + '_' + df_2_short_name[index]
-                break
-            elif fname_A.startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
-                new_name = panel_num + '_' + "B 4.13.2.2 Trans.Idrifts.Vedligeh_3-833" + tiv + ".docx"
-                break
-            else:
-                new_name = panel_num + '_' + fname_A
+        new_name = file_namer(fname_A)
         
         destination = os.path.join(dest_folder, new_name)
 
@@ -122,21 +209,7 @@ for fname_A in os.listdir(folder):
 
         # Extracting rev, date, drawing.no from File_collective.xlsx
         # ofname = Old File name,  rev = revision,  dname = Drawing name,  date = Issue date
-        for index in range(len(df)):
-            if df_ofname[index] == fname_A:
-                dname = df_dname[index]
-                rev = str(df_rev[index])
-                date = str(df_date[index])
-                break
-            elif fname_A.startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
-                dname = "Løgstrup. B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse"
-                rev = "2"
-                date = "28-06-2017"
-                break
-            else:
-                dname = ""
-                rev = ""
-                date = ""
+        dname, rev, date = drawing_namer(fname_A)
 
         # Adding information to Array:
         
@@ -165,15 +238,7 @@ for fname_A in os.listdir(folder):
                 shutil.copyfile(path_B, dest_B)
 
                 # Constructing new file name with numbering + reference to standart file name list (df_2):
-                for index in range(len(df_2)):
-                    if df_2_long_name[index] == fname_B:
-                        new_name = panel_num_B + '_' + df_2_short_name[index]
-                        break
-                    elif fname_B.startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
-                        new_name = panel_num_B + '_' + "B 4.13.2.2 Trans.Idrifts.Vedligeh_3-833" + tiv + ".docx"
-                        break
-                    else:
-                        new_name = panel_num_B + '_' + fname_B
+                new_name = file_namer(fname_B)
                 
                 destination = os.path.join(dest_folder , new_name)
 
@@ -182,21 +247,7 @@ for fname_A in os.listdir(folder):
 
                 # Extracting rev, date, drawing.no from File_naming.xlsx
                 # ofname = Old File name,  rev = revision,  dname = Drawing name,  date = Issue date
-                for index in range(len(df)):
-                    if df_ofname[index] == fname_B:
-                        dname = df_dname[index]
-                        rev = str(df_rev[index])
-                        date = str(df_date[index])
-                        break
-                    elif fname_B.startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
-                        dname = "Løgstrup. B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse"
-                        rev = "2"
-                        date = "28-06-2017"
-                        break
-                    else:
-                        dname = ""
-                        rev = ""
-                        date = ""
+                dname, rev, date = drawing_namer(fname_B)
 
                 # Adding information to Array
                 Old_fname.append(str(fname_B))
@@ -225,15 +276,7 @@ for fname_A in os.listdir(folder):
                         shutil.copyfile(path_C, dest_C)
 
                         # Constructing new file name with numbering + reference to standart file name list (df_2):
-                        for index in range(len(df_2)):
-                            if df_2_long_name[index] == fname_C:
-                                new_name = panel_num_C + '_' + df_2_short_name[index]
-                                break
-                            elif fname_C.startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
-                                new_name = panel_num_C + '_' + "B 4.13.2.2 Trans.Idrifts.Vedligeh_3-833" + tiv + ".docx"
-                                break
-                            else:
-                                new_name = panel_num_C + '_' + fname_C
+                        new_name = file_namer(fname_C)
 
                         destination = os.path.join(dest_folder , new_name)
 
@@ -242,21 +285,7 @@ for fname_A in os.listdir(folder):
 
                         # Extracting rev, date, drawing.no from File_collective.xlsx
                         # ofname = Old File name,  rev = revision,  dname = Drawing name,  date = Issue date
-                        for index in range(len(df)):
-                            if df_ofname[index] == fname_C:
-                                dname = df_dname[index]
-                                rev = str(df_rev[index])
-                                date = str(df_date[index])
-                                break
-                            elif fname_C.startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
-                                dname = "Løgstrup. B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse"
-                                rev = "2"
-                                date = "28-06-2017"
-                                break
-                            else:
-                                dname = ""
-                                rev = ""
-                                date = ""
+                        dname, rev, date = drawing_namer(fname_C)
 
                         # Adding information to Array
                         Old_fname.append(str(fname_C))
@@ -282,15 +311,7 @@ for fname_A in os.listdir(folder):
                                 shutil.copyfile(path_D, dest_D)
 
                                 # Constructing new file name with numbering + reference to standart file name list (df_2):
-                                for index in range(len(df_2)):
-                                    if df_2_long_name[index] == fname_D:
-                                        new_name = panel_num_D + '_' + df_2_short_name[index]
-                                        break
-                                    elif fname_D.startswith("B 4.13.2.2 Transport, Idriftsætning og Vedligeholdelse") == True:
-                                        new_name = panel_num_D + '_' + "B 4.13.2.2 Trans.Idrifts.Vedligeh_3-833" + tiv + ".docx"
-                                        break
-                                    else:
-                                        new_name = panel_num_D + '_' + fname_D
+                                new_name = file_namer(fname_D)
 
                                 destination = os.path.join(dest_folder , new_name)
 
@@ -298,16 +319,7 @@ for fname_A in os.listdir(folder):
                                 os.rename(dest_D, destination)
 
                                 # Extracting rev, date, drawing.no from File_collective.xlsx
-                                for index in range(len(df)):
-                                    if df_ofname[index] == fname_D:
-                                        dname = df_dname[index]
-                                        rev = str(df_rev[index])
-                                        date = str(df_date[index])
-                                        break
-                                    else:
-                                        dname = ""
-                                        rev = ""
-                                        date = ""
+                                dname, rev, date = drawing_namer(fname_D)
 
                                 # Adding information to Array
                                 Old_fname.append(str(fname_D))
