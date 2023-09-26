@@ -3,3 +3,11 @@ File names:
 3-83304_HPA2.5_DIAGRAM_2023.05.31_OP.pdf
 3-83304_HPA 2.5_Test Report_20211027.pdf
 3-83304_3-83305_3-83309_HPA2.9-HPA2.8_HPA2.7_HPA2.5_Layout_2023.05.31_OP.pdf
+
+dates = re.findall(r'\d{4}\.\d{2}.\d{2}', file_name)
+matches = re.findall(r'(\d{4})(\d{2})(\d{2})', file_name)
+year, month, day = matches[0]
+date = f"{year}.{month}.{day}"
+print(date)
+
+
